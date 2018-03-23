@@ -1,0 +1,6 @@
+---
+name: dsp-playbook
+plays: # 所有portal上可以下放的play
+- play: plays/repo/sync.yml
+- play: plays/repo/upgrade.yml
+- play: plays/repo/clean.yml

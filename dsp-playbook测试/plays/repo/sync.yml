@@ -1,0 +1,14 @@
+---
+name: sync_repo # 展示在protal上
+roles:
+- role: roles/repo/sync.yml
+  name: find repo
+  vars:
+    active: ['find']
+
+- role: roles/repo/sync.yml
+  name: sync repo
+  vars:
+    hosts: "{{ hostvars['repo_server']['repo_file']['hosts'] }}" # 必须是一个存在的组
+    repo_file: "{{ hostvars['repo_server']['repo_file'] }}"
+    active: ['test']

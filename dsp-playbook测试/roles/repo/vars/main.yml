@@ -1,0 +1,53 @@
+---
+
+REPO_HOME: /usr/local/repo
+DICT_HOME: /usr/local/dict
+RUN_HOME: /usr/local/run
+PLUS_HOME: /usr/local/plus
+
+repo_names:
+  - beta
+  - rc
+  - stable
+
+repo_projects:
+  - lib
+  - jar
+  - res
+  - asm
+
+repo_groups:
+  - "*"
+
+repo_group: "*"
+
+repo_artifact: "*"
+
+repo_version: "*"
+
+repo_filename: "*"
+
+repo_classifiers:
+  - "topology"     : { hosts: nimbus,         role: storm      }                         ## topology
+  - "storm-daemon" : { hosts: supervisor,     role: release    }                         ## storm daemon
+  - "storm-assist" : { hosts: nimbus,         role: release    }                         ## storm assist
+
+  - "job"          : { hosts: scheduler,      role: hadoop     }                         ## hadoop job
+  - "camus"        : { hosts: scheduler,      role: hadoop     }                         ## camus job
+  - "camus-daemon" : { hosts: scheduler,      role: release    }                         ## camus daemon
+  - "scheduler"    : { hosts: scheduler,      role: scheduler  }                         ## scheduler master, launch
+
+  - "spark"        : { hosts: spark,          role: spark      }                         ## spark server
+
+  - "log"          : { hosts: log,            role: release    }                         ## file sync client
+
+  - "collector"    : { hosts: collector,      role: release    }                         ## collector
+
+  - "rpc"          : { hosts: rpc,            role: rpc        }                         ## rpc: mongo, alarm,  config, hbase, ftp, scheduler, file-sync-server
+
+  - "monitor"      : { hosts: monitor,        role: release    }                         ## monitor
+
+  - "redis-assist" : { hosts: redis.assist,   role: release    }                         ## redis assist
+  - "sentinel"     : { hosts: sentinel,       role: release    }                         ## redis sentinel
+  - "ftp"          : { hosts: rpc,            role: release    }
+  - "tool"         : { hosts: monitor,        role: release    }

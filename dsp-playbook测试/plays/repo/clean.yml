@@ -1,0 +1,6 @@
+---
+name: clean_repo # 展示在protal上
+roles:
+- role: roles/repo/clean.yml
+  vars:
+    active: ['manual']

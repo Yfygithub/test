@@ -1,0 +1,11 @@
+---
+hosts: all # hosts移到job级别
+name: upgrade
+tasks:
+- if: upgrade_version | defined # when -> if:... , is defined -> | defined
+  block: # if block
+  - name: create symbolic link of loader.sh and main.sh
+    shell: |
+      ln -sfn {{ REPO_HOME }}/stable/res/dsp/dsp-assembly/{{ upgrade_version }}/loader.sh  {{ BIN_DIR }}/loader
+      ln -sfn {{ REPO_HOME }}/stable/res/dsp/dsp-assembly/{{ upgrade_version }}/main.sh  {{ BIN_DIR }}/main
+- end: # end if

@@ -1,0 +1,31 @@
+---
+name: sync repo
+vars_file: vars/main.yml # var_files -> vars_file, 手动引入role var
+set_func: # TODO
+- get_info: "{% for m in $1 %}{% for k,v in m %}{% if k == $2 %}{{ v }}{% else %}{}{% endif %}{% endfor %}{% endfor %}"
+- get_by_key: "{% set m = get_info($1,$2) %}{% if m | length >0 %}{{ m[$2] }}{% endif %}"
+- tmp_dir: "/tmp/playbook/{{ $1 }}"
+
+jobs:
+- if: '"find" in active'
+  block: # find的判断全放在role里
+  - if: repo_project == 'asm'
+    block:
+    - job: jobs/sync/find_asm.yml
+
+  - elif: repo_project == 'res'
+    block:
+    - job: jobs/sync/find_res.yml
+
+  - elif: repo_project == 'jar' or repo_project == 'lib'
+    block:
+    - job: jobs/sync/find_other.yml
+  - end: # end inner if
+
+- else:
+  block:
+  - job: jobs/sync/sync.yml
+  - job: jobs/sync/decompress.yml
+    vars:
+      file: "{{ repo_file }}"
+- end:

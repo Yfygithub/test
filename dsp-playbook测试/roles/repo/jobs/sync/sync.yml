@@ -1,0 +1,7 @@
+---
+hosts: "{{ hosts }}" # hosts移到job级别
+name: sync
+tasks:
+- name: sync acceptable files to {{ pb_hostname }} # inventory_hostname -> pb_hostname
+  shell: | # command -> shell
+    rsync -av --prune-empty-dirs -f '+ */' {{ repo_file.filter }} -f '- *' rsync://repo_server/repo/ /usr/local/repo

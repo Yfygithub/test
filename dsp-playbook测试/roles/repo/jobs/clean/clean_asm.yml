@@ -1,0 +1,32 @@
+---
+hosts: all
+name: clean asm
+tasks:
+- if: pb_hostname == 'repo_server'
+  block:
+  - name: get dictpath and pluspath
+    shell: loader info -path {{ find_output.stdout_lines | join:"," }} # filter格式有点不同
+    register: loader_output
+
+  - for: _,item in hostvars.repo_server.loader_output.stdout
+    block:
+    - set_facts:
+        clean_groups: "{{ clean_groups | default:{} | combine:{ item.repo: get_by_key(repo_classifiers, item.classifier,'hosts') } }}"
+  - end:
+- end:
+
+- for: "_,item in hostvars['repo_server']['loader_output']['stdout']"
+  block:
+  - if: "hostvars['repo_server']['clean_groups'][item.repo] in group_names and item.pattern in item.dict and item.pattern in item.plus"
+    block:
+    - name: clean repo file, dit dir and plus dir
+      shell: |
+        chattr -R -i {{ item.dict }}*
+        rm -rf {{ item.repo }} {{ item.dict }}* {{ item.plus }}
+  - end:
+
+  - name: clean empty directory
+    shell: >
+      find {{ item.repo | dirname }} {{ item.dict | dirname }} {{ item.plus | dirname }}
+      -type d -empty | xargs rm -rf
+- end:

@@ -1,0 +1,40 @@
+---
+hosts: repo_server # hosts移到job级别, localhost -> monitor/repo_server
+name: find asm
+tasks:
+- name: find files base on repo vars
+  shell: find {{ REPO_HOME }}/{{ repo_name }}/{{ repo_project }}/{{ repo_group }}/{{ repo_artifact }}/{{ repo_version }} -name "{{ repo_filename }}"
+  register: find_output
+
+- if: find_output.stdout_lines | length == 0
+  block:
+  - meta: end_play
+- end:
+
+- if: find_output.stdout_lines | length > 1
+  block:
+  - fail:
+      msg: find more than one file in
+- end:
+
+- shell: |
+    export REPO_HOME={{ REPO_HOME }}
+    loader info -path {{ find_output.stdout_lines[0] }}
+  register: info_output
+
+- set_facts:
+    repo_file: "{{ info_output.stdout | first }}" # remove from_json
+    repo_hosts: "{{ get_by_key(repo_classifiers, repo_file.classifier, 'hosts') }}" # filter -> function
+
+- if: get_by_key(repo_classifiers, repo_file.classifier,'hosts') == ""
+  block:
+  - fail:
+      msg: cannot find hosts by classifier {{ repo_file.classifier }}
+- end:
+
+-
+  set_facts:
+    repo_file: "{{ repo_file | combine:{ 'hosts': get_by_key(repo_classifiers, repo_file.classifier,'hosts') }}}"
+
+- set_facts:
+    repo_file: "{{ repo_file | combine:{ 'filter': \"-f '+ \" ~ repo_file.repo | replace(REPO_HOME ~ \"/\", '') ~ \"'\"} }}"

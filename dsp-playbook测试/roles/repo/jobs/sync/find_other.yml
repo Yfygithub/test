@@ -1,0 +1,8 @@
+---
+hosts: repo_server # hosts移到job级别, localhost -> monitor/repo_server
+name: find other
+tasks:
+- set_facts: # set_fact -> set_facts
+    repo_file:
+      hosts: 'all'
+      filter: "-f '+ {{ repo_name }}/{{ repo_project }}/{{ repo_group }}/{{ repo_artifact }}/{{ repo_version }}/{{ repo_filename }}'"

@@ -1,0 +1,67 @@
+---
+hosts: "{{ hosts }}" # hosts移到job级别
+name: decompress
+tasks:
+- if: repo_project != 'asm'
+  block:
+  - meta: end_play
+- end:
+
+- stat: path={{file.dict}} state=directory # 指定state
+  register: dictpath_output
+
+- if: dictpath_output.stat_result
+  block:
+  - name: backup dict path if exists
+    shell: |
+      chattr -R -i {{ file.dict }}
+      old_dest="{{ file.dict }}.$(date +%Y-%m-%d_%H:%M:%S).old"
+      mv {{ file.dict }} $old_dest
+      chattr -R +i $old_dest
+- end:
+
+- name: decompress files from repopath to dictpath
+  shell: |
+    mkdir -p {{ file.dict }}
+    unzip -o -d {{ file.dict }} {{ file.repo }}
+    chattr -R +i  {{ file.dict }}
+
+- stat: path={{file.run}} state=directory
+  register: runpath_output
+
+- stat: path={{file.plus}}/classpath
+  register: pluspath_output state=present
+
+- if: pluspath_output.stat_result
+  block:
+  - file:
+      path: "{{ file.plus }}"
+      state: directory
+      mode: 0777
+      recurse: true # true/false
+
+  - if: runpath_output.stat_result
+    block:
+    - name: copy running plus classpath if dir not exists
+      shell: |
+        current_dict=$(readlink -f {{ file.run }})
+        dh="{{ DICT_HOME }}"
+        ph="{{ PLUS_HOME }}"
+        current_plus=${current_dict//$dh/$ph}
+        cp -r $current_plus/classpath {{ file.plus }}
+  - end:
+
+  - if: '!runpath_output.stat_result and get_by_key(repo_classifiers, file.classifier,"role") | default:"" !=""'
+    block:
+    - name: copy default classpath files to pluspath if runpath not exists
+      copy:
+        src: "{{ role_path | dirname }}/{{ get_by_key(repo_classifiers, file.classifier,'role') }}/files/classpath"
+        dest: "{{ file.plus }}"
+  - end:
+
+  - file:
+      path: "{{ file.plus }}"
+      state: directory
+      mode: 0777
+      recurse: true
+- end:

@@ -1,0 +1,21 @@
+---
+hosts: repo_server # hosts移到job级别, localhost -> monitor/repo_server
+name: find res
+tasks:
+- if: repo_group == 'dsp' and repo_artifact == 'dsp-jndi'
+  block:
+  - set_facts:
+      repo_file:
+        hosts: 'sp'
+        filter:  "-f '+ {{ repo_name }}/{{ repo_project }}/{{ repo_group }}/{{ repo_artifact }}/{{ repo_version }}/{{ repo_filename }}'"
+- end:
+
+- if: repo_group != 'dsp' or repo_artifact != 'dsp-jndi'
+  block:
+  - set_facts:
+      repo_file:
+        hosts: 'all'
+        filter:  >
+          -f '- {{ repo_name }}/{{ repo_project }}/dsp/dsp-jndi/*/*'
+          -f '+ {{ repo_name }}/{{ repo_project }}/{{ repo_group }}/{{ repo_artifact }}/{{ repo_version }}/{{ repo_filename }}'
+- end:

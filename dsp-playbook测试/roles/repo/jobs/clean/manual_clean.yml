@@ -1,0 +1,33 @@
+---
+hosts: all
+name: manual clean
+tasks:
+- name: set default var if not defined
+  set_facts:
+    repo_name: '{{ repo_name | default:"beta" }}' # filter格式有点不同
+    repo_project: '{{ repo_project | default:"asm") }}'
+  run_once: "manual_1"
+
+- if: repo_group == '*' or repo_version == '*'
+  block:
+  - name: check for default variable's('repo_group' and 'repo_version') redefinition
+    fail:
+      msg: repo_group and repo_version must be redefined.
+    run_once: "manual_2"
+
+- elif: repo_name == 'stable' or repo_project == 'lib'
+  block:
+  - name: check for not allowed variable value
+    fail:
+      msg: "repo_name cannot be 'stable' and repo_project cannot not be 'lib'."
+    run_once: "manual_3"
+- end:
+
+- if: pb_hostname == 'repo_server'
+  block:
+  - name: find specified files
+    shell: >
+      find {{ REPO_HOME }}/{{ repo_name }}/{{ repo_project }}/{{ repo_group }}/{{ repo_artifact }}/{{ repo_version }}
+      -name {{ repo_filenames|default:[] |join:" -o name " }} -type f # 改成用join
+    register: find_output
+- end:

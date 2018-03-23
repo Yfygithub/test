@@ -1,0 +1,44 @@
+---
+hosts: all # hosts移到job级别
+name: init
+tasks:
+- set_facts: # set_fact -> set_facts
+    export_content:
+    - export REPO_HOME={{ REPO_HOME }}
+    - export DICT_HOME={{ DICT_HOME }}
+    - export RUN_HOME={{ RUN_HOME }}
+    - export PLUS_HOME={{ PLUS_HOME }}
+
+- for: item in export_content # with_items -> for: ...
+  block: # for block
+  - name: Add vars in /etc/profile
+    lineinfile:
+      path: /etc/profile  # dest -> path
+      line: "{{ item }}"
+
+  - name: Add vars in /root/.bashrc
+    lineinfile:
+      path: /root/.bashrc # dest -> path
+      line: "{{ item }}"
+- end: # end for
+
+- name: validate settings
+  shell: |
+    source /etc/profile
+    source /root/.bashrc
+
+- if: pb_hostname == 'repo_server' # when -> if: .... , inventory_hostname -> pb_hostname
+  block: # if block
+  - for: item in export_content # with_items -> for: ...
+    block: # for block
+    - name: Add vars in /var/lib/awx/.bashrc (monitor only)
+      lineinfile:
+        path: /var/lib/awx/.bashrc # dest -> path
+        line: "{{ item }}"
+  - end: # end for
+
+  - shell: source /var/lib/awx/.bashrc
+- end: # end if
+
+- name: create temporary directory
+  file: path={{ role_path | tmp_dir }} state=directory

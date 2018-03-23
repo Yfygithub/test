@@ -1,0 +1,14 @@
+---
+hosts: all
+name: clean all
+tasks:
+- for: "_,item in hostvars['repo_server']['find_output']['stdout_lines']"
+  block:
+  - name: clean specified files
+    file:
+      path: "{{ item }}"
+      state: absent
+
+  - name: clean empty directory
+    shell: find {{ item | dirname }} -type d -empty | xargs rm -rf
+- end:
